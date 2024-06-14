@@ -1,0 +1,21 @@
+#video {
+    border-radius: 10px;
+    border: 2px solid black;
+    box-shadow: 5px;
+}
+
+#canvas {
+    border-radius: 10px;
+    border: 2px solid black;
+    box-shadow: 5px;
+}
+
+ body {
+    background-image: url(raja.webp);
+    background-size: cover;
+    
+} 
+h2{
+    color: aliceblue;
+}
+

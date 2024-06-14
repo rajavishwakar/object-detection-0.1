@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Object Detection</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+    <link rel="shortcut icon" type="logo.png.png" href="logo.png.png"> 
+    <!-- logo   -->
+</head>
+
+<body>
+    <marquee behavior="alternate">
+        <h2>Object Detection</h2>
+    </marquee>
+
+    <video id="video" width="640" height="480" autoplay></video>
+    <canvas id="canvas" width="640" height="480"></canvas>
+    <div id="totalPeople" style="color: rgb(8, 167, 235); margin-top: 10px; font-size: 18px;"></div>
+
+    <audio id="myAudio" style="display: none;">
+        <source src="welcome.mp3" type="audio/mpeg">
+    </audio>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
+    <script>
+        async function runObjectDetection() {
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            const context = canvas.getContext('2d');
+            const model = await cocoSsd.load();
+            let totalPeople = 0;
+
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    video.srcObject = stream;
+                })
+                .catch(err => {
+                    console.log("An error occurred: " + err);
+                });
+
+            video.addEventListener('play', () => {
+                const processVideo = async () => {
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    const predictions = await model.detect(video);
+                    totalPeople = predictions.filter(prediction => prediction.class === 'person').length;
+                    context.clearRect(0, 0, canvas.width, canvas.height); // Clear the previous drawings
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height); // Redraw the video frame
+                    predictions.forEach(prediction => {
+                        context.beginPath();
+                        context.lineWidth = "4";
+                        context.strokeStyle = "green";
+                        context.rect(prediction.bbox[0], prediction.bbox[1], prediction.bbox[2], prediction.bbox[3]);
+                        context.font = "18px Arial";
+                        context.fillStyle = "red";
+                        context.fillText(prediction.class, prediction.bbox[0], prediction.bbox[1] - 5);
+                        context.stroke();
+                    });
+                    updateTotalPeople(totalPeople);
+                    requestAnimationFrame(processVideo);
+                };
+                requestAnimationFrame(processVideo);
+            });
+
+            setTimeout(() => {
+                const audio = document.getElementById('myAudio');
+                audio.play().catch(err => console.log("Audio playback error: ", err));
+            }, 3000);
+        }
+
+        function updateTotalPeople(count) {
+            document.getElementById('totalPeople').innerText = `Total People: ${count}`;
+        }
+
+        runObjectDetection();
+    </script>
+
+</body>
+
+</html>
